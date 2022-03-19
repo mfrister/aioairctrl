@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="phipsair",
-    version="0.2.1",
+    version="0.3.0",
     description="phipsair allwos controlling Philips air purifiers via encrypted CoAP.",
     author="betaboon",
     url="https://github.com/mfrister/phipsair",
