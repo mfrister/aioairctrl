@@ -3,7 +3,7 @@ import asyncio
 import json
 import logging
 
-from aioairctrl import CoAPClient
+from phipsair import CoAPClient
 
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__package__)

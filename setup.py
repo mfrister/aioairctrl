@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="aioairctrl",
+    name="phipsair",
     version="0.2.1",
-    description="library for controlling philips air purifiers (using encrypted CoAP)",
+    description="phipsair allwos controlling Philips air purifiers via encrypted CoAP.",
     author="betaboon",
-    url="https://github.com/betaboon/aioairctrl",
+    url="https://github.com/mfrister/phipsair",
     license="MIT",
     packages=find_packages(),
     install_requires=[
@@ -14,7 +14,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "aioairctrl=aioairctrl.__main__:main",
+            "phipsair=phipsair.__main__:main",
         ],
     },
 )

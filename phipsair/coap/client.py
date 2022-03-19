@@ -2,7 +2,7 @@ import json
 import logging
 import os
 
-from aioairctrl.coap import aiocoap_monkeypatch  # noqa: F401
+from phipsair.coap import aiocoap_monkeypatch  # noqa: F401
 from aiocoap import (
     Context,
     GET,
@@ -11,7 +11,7 @@ from aiocoap import (
     POST,
 )
 
-from aioairctrl.coap.encryption import EncryptionContext
+from phipsair.coap.encryption import EncryptionContext
 
 logger = logging.getLogger(__name__)
 
