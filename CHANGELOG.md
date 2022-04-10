@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+* Add an auto-reconnecting client mapping to Python data structures resulting in a much simpler, although incomplete API.
+
 ## 0.3.1
 
 * Removed a monkey patch for aiocoap's `MessageManager._deduplicate_message`. The patch might conflict with other libraries using aiocoap and testing didn't result in any issues without the patch.
