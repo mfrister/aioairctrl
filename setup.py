@@ -12,6 +12,7 @@ setup(
     author="betaboon, Michael Frister",
     url="https://github.com/mfrister/phipsair",
     project_urls={
+        "Release notes": "https://github.com/mfrister/phipsair/blob/main/CHANGELOG.md",
         "Bug Tracker": "https://github.com/mfrister/phipsair/issues",
     },
     license="MIT",
