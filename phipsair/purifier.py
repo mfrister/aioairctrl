@@ -87,6 +87,14 @@ class Status:
         )
 
 
+class CannotConnect(Exception):
+    """
+    Error to indicate we cannot connect.
+
+    Currently only used by the connection test.
+    """
+
+
 class PersistentClient:
     """
     PersistentClient attempts to provide reliable communication with the Air Purifier.
@@ -118,6 +126,33 @@ class PersistentClient:
         # 5 minutes should be enough to not time out when the purifier is turned off.
         self._status_timeout = timedelta(minutes=5)
         self._shutdown: asyncio.Future = asyncio.Future()
+
+    @staticmethod
+    async def test_connection(host: str, port: int):
+        """
+        Test if we can connect to the purifier by requesting it's status.
+
+        Returns the device's name, ID, and model.
+        """
+
+        try:
+            client = await asyncio.wait_for(CoAPClient.create(host=host, port=port), timeout=5.0)
+            try:
+                status = await asyncio.wait_for(client.get_status(), timeout=15.0)
+            finally:
+                await client.shutdown()
+        except Exception as ex:
+            _LOGGER.error("Philips Air Purifier: Failed to connect: %s", repr(ex))
+            raise CannotConnect() from ex
+
+        if "DeviceId" in status and "name" in status:
+            return {
+                "name": status["name"],
+                "device_id": status["DeviceId"],
+                "model": status["modelid"],
+            }
+
+        raise CannotConnect()
 
     def start(self) -> None:
         """
