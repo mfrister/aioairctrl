@@ -6,3 +6,4 @@ set -o nounset
 
 black --check .
 flake8 .
+mypy ./phipsair
