@@ -2,15 +2,14 @@
 from __future__ import annotations
 
 import asyncio
+import enum
+import logging
 from asyncio.tasks import FIRST_COMPLETED
 from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
-import enum
-import logging
 from typing import Any
 
 from phipsair import CoAPClient
-
 
 _LOGGER = logging.getLogger(__name__)
 

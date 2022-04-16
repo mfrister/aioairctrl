@@ -6,4 +6,5 @@ set -o nounset
 
 black --check .
 flake8 .
+isort --check-only phipsair
 mypy ./phipsair

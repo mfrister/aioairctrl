@@ -1,6 +1,5 @@
 import asyncio
 
-
 from aiocoap.error import LibraryShutdown, NotObservable, ObservationCancelled
 from aiocoap.protocol import ClientObservation
 
