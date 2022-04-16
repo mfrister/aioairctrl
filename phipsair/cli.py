@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import argparse
 import asyncio
 import json
 import logging
+from typing import Any
 
 from phipsair import CoAPClient
 
@@ -107,23 +110,27 @@ async def async_main() -> None:
                 else:
                     print(status)
         elif args.command == "set":
-            data = {}
-            for e in args.values:
-                k, v = e.split("=")
-                if v == "true":
-                    v = True
-                elif v == "false":
-                    v = False
-                if args.value_as_int:
-                    try:
-                        v = int(v)
-                    except ValueError:
-                        print("Cannot encode value '%s' as int" % v)
-                        data = None
-                        break
-                data[k] = v
-            if data:
-                await client.set_control_values(data=data)
+            data: dict[str, Any] = {}
+
+            try:
+                for e in args.values:
+                    k, v = e.split("=")
+                    if v == "true":
+                        v = True
+                    elif v == "false":
+                        v = False
+                    if args.value_as_int:
+                        try:
+                            v = int(v)
+                        except ValueError as e:
+                            raise ValueError("Cannot encode value '%s' as int" % v) from e
+                    data[k] = v
+            except ValueError as e:
+                print(str(e))
+                return
+
+            await client.set_control_values(data=data)
+
     except (KeyboardInterrupt, asyncio.CancelledError):
         pass
     finally:

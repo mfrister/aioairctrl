@@ -86,12 +86,12 @@ class Client:
         async for response in requester.observation:
             yield decrypt_status(response)
 
-    async def set_control_value(self, key, value, retry_count=5, resync=True) -> None:
+    async def set_control_value(self, key, value, retry_count=5, resync=True) -> bool:
         return await self.set_control_values(
             data={key: value}, retry_count=retry_count, resync=resync
         )
 
-    async def set_control_values(self, data: dict, retry_count=5, resync=True) -> None:
+    async def set_control_values(self, data: dict, retry_count=5, resync=True) -> bool:
         state_desired = {
             "state": {
                 "desired": {
