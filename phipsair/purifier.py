@@ -23,7 +23,8 @@ class Mode(enum.Enum):
     The modes define how speed is controlled by the purifier itself. Only Sleep mode
     also turns off lights on the device.
 
-    The values are the values exposed by the device's JSON API, for convenience when converting the JSON.
+    The values are the values exposed by the device's JSON API, for convenience when converting
+    the JSON.
     """
 
     Manual = "M"
@@ -38,7 +39,8 @@ class FanSpeed(enum.Enum):
     """
     FanSpeed represents the different fan speeds reported by the device.
 
-    The values are the values exposed by the device's JSON API, for convenience when converting the JSON.
+    The values are the values exposed by the device's JSON API, for convenience when converting
+    the JSON.
     """
 
     Off = "0"
@@ -119,9 +121,9 @@ class PersistentClient:
         # dict key is a unique id that can later be used to remove the observer.
         self._status_callbacks: dict[int, Callable[[Status | None], None]] = {}
         self._last_status_at: datetime = datetime.now(timezone.utc)
-        # The purifier sends a status update whenever something changes, which most commonly is the measured
-        # pm25 value. When turned on, this usually happens every few seconds to every few 10s of seconds, depending
-        # on how the amount of particles in the air changes.
+        # The purifier sends a status update whenever something changes, which most commonly is the
+        # measured pm25 value. When turned on, this usually happens every few seconds to every few
+        # 10s of seconds, depending on how the amount of particles in the air changes.
         # When turned off, the updates usually only happen every 3 minutes.
         # 5 minutes should be enough to not time out when the purifier is turned off.
         self._status_timeout = timedelta(minutes=5)
@@ -319,7 +321,8 @@ class PersistentClient:
 
     def observe_status(self, id_: int, callback: Callable[[Status | None], None]) -> None:
         """
-        Register the given callable to be called when the client reveives a status update from the purifier.
+        Register the given callable to be called when the client reveives a status update from the
+        purifier.
 
         The client passes None as status to the callback if the device is unavailable.
         """
