@@ -4,7 +4,7 @@ from aiocoap.error import LibraryShutdown, NotObservable, ObservationCancelled
 from aiocoap.protocol import ClientObservation
 
 
-def __del__(self):
+def __del__(self) -> None:  # type: ignore
     if self._future.done():
         try:
             # Fetch the result so any errors show up at least in the

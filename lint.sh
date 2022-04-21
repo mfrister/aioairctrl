@@ -5,6 +5,6 @@ set -o pipefail
 set -o nounset
 
 black --check .
-flake8 .
 isort --check-only phipsair
-mypy ./phipsair
+mypy ./phipsair --show-error-codes
+flake8 .

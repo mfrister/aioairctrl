@@ -4,10 +4,11 @@ from __future__ import annotations
 import asyncio
 import enum
 import logging
+from asyncio.futures import Future
 from asyncio.tasks import FIRST_COMPLETED
 from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Union
 
 from phipsair import CoAPClient
 
@@ -78,7 +79,7 @@ class Status:
         self.mode = mode
         self.fan_speed = fan_speed
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Return representation of the device status."""
         return (
             f"<Status device_id='{self.device_id}', name='{self.name}', model='{self.model}', "
@@ -94,6 +95,12 @@ class CannotConnect(Exception):
 
     Currently only used by the connection test.
     """
+
+
+class _Command:
+    def __init__(self, data: dict[str, Union[str, int, bool]], result: Future[Union[bool, None]]):
+        self.data = data
+        self.result = result
 
 
 class PersistentClient:
@@ -114,9 +121,8 @@ class PersistentClient:
         self._loop = loop
         self._host = host
         self._port = port
-        self._background_task: asyncio.Task | None = None
-        self._observe_task: asyncio.Task | None = None
-        self._commmand_queue: asyncio.Queue = asyncio.Queue()
+        self._background_task: asyncio.Task[None] | None = None
+        self._commmand_queue: asyncio.Queue[_Command] = asyncio.Queue()
         # dict key is a unique id that can later be used to remove the observer.
         self._status_callbacks: dict[int, Callable[[Status | None], None]] = {}
         self._last_status_at: datetime = datetime.now(timezone.utc)
@@ -126,10 +132,10 @@ class PersistentClient:
         # When turned off, the updates usually only happen every 3 minutes.
         # 5 minutes should be enough to not time out when the purifier is turned off.
         self._status_timeout = timedelta(minutes=5)
-        self._shutdown: asyncio.Future = asyncio.Future()
+        self._shutdown: asyncio.Future[None] = asyncio.Future()
 
     @staticmethod
-    async def test_connection(host: str, port: int):
+    async def test_connection(host: str, port: int) -> dict[str, str]:
         """
         Test if we can connect to the purifier by requesting it's status.
 
@@ -167,7 +173,7 @@ class PersistentClient:
 
         self._background_task = self._loop.create_task(self._connection_loop())
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop the client and close all open connections."""
         # Use cancel, so nothing breaks in case this is called multiple times.
         self._shutdown.cancel()
@@ -216,7 +222,7 @@ class PersistentClient:
                 _LOGGER.debug("shutdown requested, stopping connection loop")
                 return
 
-    async def _observe_status(self, client: CoAPClient):
+    async def _observe_status(self, client: CoAPClient) -> None:
         async for json_status in client.observe_status():
             _LOGGER.debug("observed status: %s", repr(json_status))
             try:
@@ -240,7 +246,7 @@ class PersistentClient:
             for callback in self._status_callbacks.values():
                 callback(status)
 
-    async def _status_watchdog(self):
+    async def _status_watchdog(self) -> None:
         while True:
             duration_until_timeout = (self._last_status_at + self._status_timeout) - datetime.now(
                 timezone.utc
@@ -253,26 +259,24 @@ class PersistentClient:
 
             await asyncio.sleep(duration_until_timeout.total_seconds())
 
-    async def _command_loop(self, client: CoAPClient):
+    async def _command_loop(self, client: CoAPClient) -> None:
         # Empty command queue, so piled up commands don't all time out.
         while not self._commmand_queue.empty():
-            _, result_future = await self._commmand_queue.get()
-            result_future.set_result(None)
+            cmd = await self._commmand_queue.get()
+            cmd.result.set_result(None)
 
         while True:
-            params, result_future = await self._commmand_queue.get()
+            cmd = await self._commmand_queue.get()
             try:
-                args, kwargs = params
                 _LOGGER.debug(
-                    "client set_control_values args: %s kwargs: %s",
-                    repr(args),
-                    repr(kwargs),
+                    "client set_control_values data: %s",
+                    repr(cmd.data),
                 )
-                success = await client.set_control_values(*args, **kwargs)
-                result_future.set_result(success)
+                success = await client.set_control_values(cmd.data)
+                cmd.result.set_result(success)
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Command failed, reconnecting")
-                result_future.set_result(None)
+                cmd.result.set_result(None)
 
                 # Command failed, so the connection is probably broken.
                 # Return to the connection loop for reconnecting.
@@ -280,41 +284,35 @@ class PersistentClient:
 
     async def _run_command(
         self,
-        args: list[Any] = None,
-        kwargs: dict[str, Any] = None,
-    ) -> asyncio.Future[Any]:
-        # pylint forces to not use [] and {} as default values, so we need this workaround.
-        # disable=dangerous-default-value doesn't seem to work.
-        if args is None:
-            args = []
-        if kwargs is None:
-            kwargs = {}
+        data: dict[str, Union[str, int, bool]],
+    ) -> bool | None:
 
-        result_future = asyncio.get_event_loop().create_future()
-        await self._commmand_queue.put(((args, kwargs), result_future))
+        result_future: Future[bool | None] = asyncio.get_event_loop().create_future()
+        cmd = _Command(data=data, result=result_future)
+        await self._commmand_queue.put(cmd)
         return await result_future
 
-    async def turn_on(self):
+    async def turn_on(self) -> None:
         """Turn the purifier on."""
-        success = await self._run_command(kwargs={"data": {"pwr": "1"}})
+        success = await self._run_command(data={"pwr": "1"})
         if not success:
             _LOGGER.error("Failed to turn on")
 
-    async def turn_off(self):
+    async def turn_off(self) -> None:
         """Turn the purifier off."""
-        success = await self._run_command(kwargs={"data": {"pwr": "0"}})
+        success = await self._run_command(data={"pwr": "0"})
         if not success:
             _LOGGER.error("Failed to turn off")
 
-    async def set_preset_mode(self, mode: Mode):
+    async def set_preset_mode(self, mode: Mode) -> None:
         """Activate a preset mode on the purifier."""
-        success = await self._run_command(kwargs={"data": {"mode": mode.value}})
+        success = await self._run_command(data={"mode": mode.value})
         if not success:
             _LOGGER.error("Failed to set preset_mode %s", mode)
 
-    async def set_manual_speed(self, speed: FanSpeed):
+    async def set_manual_speed(self, speed: FanSpeed) -> None:
         """Set the fan to a constant speed."""
-        success = await self._run_command(kwargs={"data": {"om": speed.value}})
+        success = await self._run_command(data={"om": speed.value})
         if not success:
             _LOGGER.error("Failed to set manual speed %s", speed)
 

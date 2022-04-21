@@ -138,7 +138,7 @@ async def async_main() -> None:
             await client.shutdown()
 
 
-def main():
+def main() -> None:
     try:
         asyncio.run(async_main())
     except KeyboardInterrupt:
