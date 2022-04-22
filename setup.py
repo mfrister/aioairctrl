@@ -22,10 +22,7 @@ setup(
         "Operating System :: OS Independent",
     ],
     packages=find_packages(),
-    install_requires=[
-        "aiocoap>=0.4.1, <0.5",
-        "pycryptodomex>=3.13, <4.0",
-    ],
+    install_requires=[val.strip() for val in open("requirements.txt")],
     entry_points={
         "console_scripts": [
             "phipsair=phipsair.__main__:main",
