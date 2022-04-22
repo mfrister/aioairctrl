@@ -287,7 +287,7 @@ class PersistentClient:
         data: dict[str, Union[str, int, bool]],
     ) -> bool | None:
 
-        result_future: Future[bool | None] = asyncio.get_event_loop().create_future()
+        result_future: Future[bool | None] = self._loop.create_future()
         cmd = _Command(data=data, result=result_future)
         await self._commmand_queue.put(cmd)
         return await result_future
