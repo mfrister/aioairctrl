@@ -22,6 +22,7 @@ setup(
         "Operating System :: OS Independent",
     ],
     packages=find_packages(),
+    package_data={"phipsair": ["py.typed"]},
     install_requires=[val.strip() for val in open("requirements.txt")],
     entry_points={
         "console_scripts": [
