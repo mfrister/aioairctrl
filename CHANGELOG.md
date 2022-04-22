@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.1
+
+* Add type annotations, verified by mypy in strict mode.
+* Add linters black, flake8, isort and run them on GitHub Actions.
+
 ## 0.4.0
 
 * Add an auto-reconnecting client mapping to Python data structures resulting in a much simpler, although incomplete API.
