@@ -32,4 +32,5 @@ setup(
             "phipsair=phipsair.__main__:main",
         ],
     },
+    zip_safe=False,
 )
