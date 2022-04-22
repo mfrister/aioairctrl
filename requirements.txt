@@ -1,2 +1,2 @@
-aiocoap>=0.4.1, <0.5
-pycryptodomex>=3.13, <4.0
+aiocoap==0.4.3
+pycryptodomex==3.14.1
