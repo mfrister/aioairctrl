@@ -129,9 +129,9 @@ class PersistentClient:
         # The purifier sends a status update whenever something changes, which most commonly is the
         # measured pm25 value. When turned on, this usually happens every few seconds to every few
         # 10s of seconds, depending on how the amount of particles in the air changes.
-        # When turned off, the updates usually only happen every 3 minutes.
-        # 5 minutes should be enough to not time out when the purifier is turned off.
-        self._status_timeout = timedelta(minutes=5)
+        # When turned off, the updates usually only happen every 3 minutes, sometimes a bit
+        # more rarely, though, so let's go with 10 minutes.
+        self._status_timeout = timedelta(minutes=10)
         self._shutdown: asyncio.Future[None] = asyncio.Future()
 
     @staticmethod
