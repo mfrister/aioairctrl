@@ -16,6 +16,7 @@ ClientT = TypeVar("ClientT", bound="Client")
 
 
 class Client:
+    INFO_PATH = "/sys/dev/info"
     STATUS_PATH = "/sys/dev/status"
     CONTROL_PATH = "/sys/dev/control"
     SYNC_PATH = "/sys/dev/sync"
@@ -56,6 +57,20 @@ class Client:
         client_key = response.payload.decode()
         logger.debug("synced: %s", client_key)
         self._encryption_context.set_client_key(client_key)
+
+    async def info(self) -> dict[str, str]:
+        assert self._client_context is not None
+
+        logger.debug("calling info")
+        request = Message(
+            code=GET,
+            mtype=NON,
+            uri=f"coap://{self.host}:{self.port}{self.INFO_PATH}",
+        )
+        response = await self._client_context.request(request).response
+        payload = response.payload.decode()
+        logger.debug("info: %s", payload)
+        return json.loads(payload)
 
     async def get_status(self) -> dict[str, Any]:
         assert self._client_context is not None
