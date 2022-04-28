@@ -201,9 +201,10 @@ class PersistentClient:
 
             observe_task = self._loop.create_task(self._observe_status(client))
             status_watchdog = self._loop.create_task(self._status_watchdog())
+            keepalive_loop = self._loop.create_task(self._keepalive_loop(client))
             command_loop = self._loop.create_task(self._command_loop(client))
             await asyncio.wait(
-                [command_loop, status_watchdog, self._shutdown],
+                [command_loop, status_watchdog, keepalive_loop, self._shutdown],
                 return_when=FIRST_COMPLETED,
             )
 
@@ -211,6 +212,7 @@ class PersistentClient:
             # (we only wait for the first to complete).
             observe_task.cancel()
             status_watchdog.cancel()
+            keepalive_loop.cancel()
             command_loop.cancel()
 
             try:
@@ -258,6 +260,28 @@ class PersistentClient:
                 return
 
             await asyncio.sleep(duration_until_timeout.total_seconds())
+
+    # TODO Explain
+    async def _keepalive_loop(self, client: CoAPClient) -> None:
+        """
+        _keepalive_loop sends a device info request about every 60 seconds to
+        make sure a potential NAT between the client and the device doesn't
+        drop the NAT mapping for the UDP stream.
+
+        It's also useful for detecting connection issues and marking the device
+        as unavailable faster than waiting for the status timeout, which needs
+        to be quite long.
+        """
+        while True:
+            try:
+                await asyncio.wait_for(client.info(), timeout=10.0)
+            except Exception:
+                _LOGGER.exception("keepalive info failed")
+                return
+
+            _LOGGER.debug("Keepalive info successful")
+
+            await asyncio.sleep(60.0)
 
     async def _command_loop(self, client: CoAPClient) -> None:
         # Empty command queue, so piled up commands don't all time out.
