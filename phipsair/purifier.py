@@ -145,18 +145,18 @@ class PersistentClient:
         try:
             client = await asyncio.wait_for(CoAPClient.create(host=host, port=port), timeout=5.0)
             try:
-                status = await asyncio.wait_for(client.get_status(), timeout=15.0)
+                info = await asyncio.wait_for(client.info(), timeout=15.0)
             finally:
                 await client.shutdown()
         except Exception as ex:
             _LOGGER.error("Philips Air Purifier: Failed to connect: %s", repr(ex))
             raise CannotConnect() from ex
 
-        if "DeviceId" in status and "name" in status:
+        if "device_id" in info and "name" in info:
             return {
-                "name": status["name"],
-                "device_id": status["DeviceId"],
-                "model": status["modelid"],
+                "name": info["name"],
+                "device_id": info["device_id"],
+                "model": info["modelid"],
             }
 
         raise CannotConnect()
