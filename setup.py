@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="phipsair",
-    version="0.4.1",
+    version="0.5.0",
     description="phipsair allows controlling Philips air purifiers via encrypted CoAP.",
     long_description=long_description,
     long_description_content_type="text/markdown",

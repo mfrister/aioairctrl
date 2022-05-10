@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0
+
+* Add support for the purifier's plaintext `/sys/dev/info` where the purifier seems to respond quickly.
+* Persistent Client: Use the *info* endpoint for keeping the UDP stream alive across NATs, by running one request per minute.
+* Persistent Client: Use the *info* endpoint for connection tests. The *info* endpoint responds quickly more reliably than the previously used *status* endpoint.
+* Persistent Client: Increase the timeout for *status* observations to 10 minutes to reduce chances of reconnecting although the purifier is still available. This is mostly relevant when the device is turned off.
+
 ## 0.4.1
 
 * Add type annotations, verified by mypy in strict mode.
